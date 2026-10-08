@@ -12,6 +12,7 @@
 | `02-examples-core-data.md` | Ray Core / Ray Data 範例與「改哪裡」表 |
 | `03-examples-rllib.md` | RLlib CartPole、多智能體範例、API stack 結構 |
 | `04-contribution-flow.md` | 貢獻流程：PR、lint、測試、CI |
+| `05-issues.md` | 第 3 階段 issue 分析 |
 
 ## 環境（每次開新 session 都要重做）
 
@@ -88,9 +89,10 @@ pip install "tensorboardX>=1.9" dm_tree "gymnasium==1.2.2" lz4 "ormsgpack>=1.7.0
 - [ ] 觀察 2：Pillow 問題上游有沒有人回報（第 3 階段一起查）
 - [x] 觀察 7：根本原因找到了（測試沒有固定區塊順序）
 - [ ] 觀察 7：查上游有沒有人回報，以及 flakey-tests.ray.io 的紀錄
-- [ ] 第 3 階段的三個 issue：#66472、#66077、#65759 的最新狀態
+- [x] 三個 issue 的狀態：#66472 已經有 PR #66499；#66077 和 #65759 的留言讀不到（見 `05-issues.md`）
 
 ## 進度
 - 2026-10-08 第 0 階段：環境建好，`test_train_test_split` 通過
 - 2026-10-08 第 1 階段：地圖與 Core/Data/RLlib 範例完成，推到 `lex/notes`
 - 2026-10-08 第 2 階段：貢獻流程筆記完成（`04-contribution-flow.md`）；觀察 7 已找到原因
+- 2026-10-08 第 3 階段：GitHub API 讀不到 ray-project/ray 的留言，等使用者貼上 issue 內容
