@@ -62,11 +62,19 @@ pip install "tensorboardX>=1.9" dm_tree "gymnasium==1.2.2" lz4 "ormsgpack>=1.7.0
 - CartPole PPO 每個 iteration 約 16 秒，時間主要花在 Learner 更新，不在採樣（subagent 的觀察，[推論]）。
 - `num_env_runners` 從 2 改成 3 沒有變快；`train_batch_size=1000` 時每個 iteration 降到約 4 秒。
 
-### 7. `test_train_test_split` 單獨跑通過、一起跑失敗 [已查證現象，原因調查中]
-- 單獨跑 `python -m pytest -q "python/ray/data/tests/test_split.py::test_train_test_split"` → passed（2 次）。
-- `python -m pytest -q python/ray/data/tests/test_split.py -k train_test_split` → 失敗，`assert [0, 1, 4, 5, 6, 7] == [0, 1, 2, 3, 4, 5]`（3 次）。用 `--collect-only` 看，它還是第一個執行的，所以不是前面的測試留下了狀態。
-- 筆數對（6 筆），內容不對 → [推論] 是區塊順序或合併的問題，不是大小算錯。
-- [待查] 根本原因；跟 issue #66472（train_test_split 大小算錯）有沒有關係。
+### 7. `test_train_test_split` 結果看運氣：測試沒有固定區塊順序 [已查證]
+- 現象：用 `-k train_test_split` 跑，3 次都失敗，`assert [0, 1, 4, 5, 6, 7] == [0, 1, 2, 3, 4, 5]`；單獨跑 2 次都通過。
+- 根本原因：
+  - 不 shuffle 時，`train_test_split` 會呼叫 `split_at_indices`，依照區塊**到達的順序**切出前 N 列（`python/ray/data/dataset.py:3063` `bundle: RefBundle = self._execute()`）。
+  - `preserve_order` 預設是 `False`（`python/ray/data/_internal/execution/interfaces/execution_options.py:411`）。`range(8)` 分成 4 個區塊，哪個先讀完就排在前面。
+  - 官方文件寫明預設不保證順序（`doc/source/data/performance-tips.md:360`、`doc/source/data/shuffling-data.md:151`）。
+  - 同一個測試檔裡，其他依賴順序的測試都有設 `preserve_order = True`（`test_split.py:201,267,298`），只有 `test_train_test_split`（`:746`）沒設。
+  - docstring 裡同一個範例在 CI 跑 doctest 時是穩定的，因為 doctest 外掛會先設 `preserve_order = True`（`python/ray/data/tests/doctest_pytest_plugin.py:43`）。
+- 證明（subagent 的實驗，我審過）：用 pytest 外掛攔截後，失敗時的區塊順序是 `[[0,1],[4,5],[6,7],[2,3]]`，切出前 6 列剛好得到 `[0,1,4,5,6,7]`。強制設 `preserve_order=True` 時 2/2 通過，不設時 2/2 失敗。
+- 判斷：**測試不穩定（flaky test）**，不是 Ray 的執行錯誤，也不是本機環境的問題。
+- [推論] 可能的修法：在測試裡加 `DataContext.get_current().execution_options.preserve_order = True`，或改成跟順序無關的斷言（例如比較 `sorted(...)` 和筆數）。
+- [推論] docstring 範例看起來像在保證順序，但一般使用者預設拿不到這個順序。這可能算文件不清楚的地方。
+- [待查] 上游有沒有人回報過這個 flaky test；它在 CI 是不是真的會失敗（https://flakey-tests.ray.io/ 可查）。這和 #66472（大小算錯）是不同的問題，大小是對的。
 
 ### 8. 跑 Ray Data 的完整測試需要 polars [已查證]
 - `test_streaming_train_test_split_*` 用到 `Dataset.join`，錯誤訊息：`ImportError: Dataset.join depends on 'polars'... pip install polars`。目前 venv 沒有裝。
@@ -78,10 +86,11 @@ pip install "tensorboardX>=1.9" dm_tree "gymnasium==1.2.2" lz4 "ormsgpack>=1.7.0
 
 ## 待查問題清單
 - [ ] 觀察 2：Pillow 問題上游有沒有人回報（第 3 階段一起查）
-- [ ] 觀察 7：test_train_test_split 一起跑才失敗的根本原因（調查中）
+- [x] 觀察 7：根本原因找到了（測試沒有固定區塊順序）
+- [ ] 觀察 7：查上游有沒有人回報，以及 flakey-tests.ray.io 的紀錄
 - [ ] 第 3 階段的三個 issue：#66472、#66077、#65759 的最新狀態
 
 ## 進度
 - 2026-10-08 第 0 階段：環境建好，`test_train_test_split` 通過
 - 2026-10-08 第 1 階段：地圖與 Core/Data/RLlib 範例完成，推到 `lex/notes`
-- 2026-10-08 第 2 階段：貢獻流程筆記完成（`04-contribution-flow.md`）；觀察 7 調查中
+- 2026-10-08 第 2 階段：貢獻流程筆記完成（`04-contribution-flow.md`）；觀察 7 已找到原因

@@ -133,7 +133,7 @@ python -m pytest -q python/ray/data/tests/test_split.py -k train_test_split
 - 一個失敗的訊息：`assert [0, 1, 4, 5, 6, 7] == [0, 1, 2, 3, 4, 5]`（`test_train_test_split`）。
 - 另一個失敗訊息：`ImportError: Dataset.join depends on 'polars', but Ray Data couldn't import it. Install it by running 'pip install polars'`。
 - 路徑注意（已查證）：traceback 顯示 `/root/ray-venv/lib/python3.13/site-packages/ray/...`，但 `site-packages/ray/data` 本身是 `setup-dev.py` 建的 symlink，指向 `/home/user/ray/python/ray/data`（`ls -l` 可見；`python -c "import ray.data, os; print(os.path.realpath(ray.data.__file__))"` 會印出 repo 路徑）。所以測試跑的**就是** repo 原始碼。wheel 的 `ray.__commit__` 和 repo HEAD 也同為 `0fe2388`，不是版本不一致。
-- 失敗原因：3 個 `streaming_train_test_split` 是缺 `polars`（環境問題，`pip install polars` 可解）。`test_train_test_split` 單獨跑會通過（`::test_train_test_split`，68 秒），用 `-k train_test_split` 一起跑才失敗；原因調查中，見 `00-session-log.md` 觀察 7。
+- 失敗原因：3 個 `streaming_train_test_split` 是缺 `polars`（環境問題，`pip install polars` 可解）。`test_train_test_split` 單獨跑會通過（`::test_train_test_split`，68 秒），用 `-k train_test_split` 一起跑才失敗；原因是測試沒有設定 `preserve_order`，區塊順序看運氣（flaky test），見 `00-session-log.md` 觀察 7。教訓：本機測試失敗時，先單獨跑、多跑幾次，分清楚是你的改動造成的、環境問題，還是原本就不穩定。
 
 ## 5. CI
 
