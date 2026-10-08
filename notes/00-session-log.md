@@ -12,7 +12,8 @@
 | `02-examples-core-data.md` | Ray Core / Ray Data 範例與「改哪裡」表 |
 | `03-examples-rllib.md` | RLlib CartPole、多智能體範例、API stack 結構 |
 | `04-contribution-flow.md` | 貢獻流程：PR、lint、測試、CI |
-| `05-issues.md` | 第 3 階段 issue 分析 |
+| `05-issues.md` | 第 3 階段 issue 總表 |
+| `06-issue-65759.md` | #65759（HDF5 datasource）詳細分析 |
 
 ## 環境（每次開新 session 都要重做）
 
@@ -85,6 +86,12 @@ pip install "tensorboardX>=1.9" dm_tree "gymnasium==1.2.2" lz4 "ormsgpack>=1.7.0
 - 新測試放哪裡：`getting-involved.md:112` 寫 `python/ray/tests/`，但 Ray Data 的 pre-commit 規定要放 `python/ray/data/tests/`（`.pre-commit-config.yaml:225`）。
 - pre-commit 3.5.0 第一次跑 `pre-commit run --files <檔案>` 要約 2.5 分鐘建立 hook 環境，之後就快了。
 
+### 10. 可以用 git 直接抓上游 PR 的內容 [已查證]
+- 本地 repo 的歷史被壓縮過（只有 58 個 commit），但 `git fetch --depth=30 https://github.com/ray-project/ray refs/pull/<N>/head:refs/remotes/upstream-pr/<N>` 可以抓到任何上游 PR 的 commit，再用 `git log` / `git show --stat` 看它改了什麼。這是在 GitHub API 不能用時，查「這題有沒有人在做」最可靠的方法。
+
+### 11. `read_binary_files` 預設只有 `bytes` 欄位 [已查證]
+- `python/ray/data/_internal/datasource/binary_datasource.py:13` `_COLUMN_NAME = "bytes"`；要有 `path` 欄位要傳 `include_paths=True`（`python/ray/data/read_api.py:3814` 預設是 `False`）。所以 #65759 那則留言說「path 欄位已經不見了」並不正確。
+
 ## 待查問題清單
 - [ ] 觀察 2：Pillow 問題上游有沒有人回報（第 3 階段一起查）
 - [x] 觀察 7：根本原因找到了（測試沒有固定區塊順序）
@@ -96,3 +103,4 @@ pip install "tensorboardX>=1.9" dm_tree "gymnasium==1.2.2" lz4 "ormsgpack>=1.7.0
 - 2026-10-08 第 1 階段：地圖與 Core/Data/RLlib 範例完成，推到 `lex/notes`
 - 2026-10-08 第 2 階段：貢獻流程筆記完成（`04-contribution-flow.md`）；觀察 7 已找到原因
 - 2026-10-08 第 3 階段：GitHub API 讀不到 ray-project/ray 的留言，等使用者貼上 issue 內容
+- 2026-10-08 第 3 階段：#66077 已經有人在做（使用者確認）；#65759 分析完成；等使用者挑題

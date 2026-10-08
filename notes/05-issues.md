@@ -1,4 +1,4 @@
-# 第 3 階段：Issue 分析（進行中）
+# 第 3 階段：Issue 分析
 
 查詢日期：2026-10-08。
 
@@ -15,7 +15,7 @@
 |---|---|---|---|
 | #66472 | train_test_split 浮點截斷導致大小算錯、stratify 可能產生空的測試集 | Open；bug, community-backlog, data, stability, triage | **[已查證] 已經有修正 PR #66499**：作者 ege-arhan，2026-09-25 送出，只改 `python/ray/data/dataset.py`（+63/−7），commit 訊息寫明兩個問題都修了。依社群習慣，**這題不要再做** |
 | #66077 | [Data] Raise a descriptive error when a partition value cannot be cast | Open；bug, community-backlog, data, triage, usability；沒有指派人，沒有關聯的 PR | **使用者確認：已經有人在做**（2026-10-08），不考慮 |
-| #65759 | [Data] Add HDF5 datasource support | Open；community-backlog, data, usability；沒有指派人，沒有關聯的 PR；本文提到可以參考 PR #63821（`read_lerobot`）的寫法 | 留言讀不到 |
+| #65759 | [Data] Add HDF5 datasource support | Open；community-backlog, data, usability；沒有指派人，沒有關聯的 PR；本文提到可以參考 PR #63821（`read_lerobot`）的寫法 | 使用者貼了一則留言：有人提供用 `read_binary_files`/`from_items` + h5py 代用的寫法，並說「happy to help test if you open a PR」。[推論] 留言者沒有要自己做。其他留言未知。完整分析見 `06-issue-65759.md` |
 
 - [推論] 這三題的標籤都**沒有** `good-first-issue`，而是 `community-backlog`。goodfirstissue.org 收錄它們，可能是因為它用的篩選標準不同。
 - 注意 #66077 和 #66472 都有 `triage` 標籤。[推論] 這代表維護者還沒分類完成。依社群習慣，可能要先留言詢問維護者再動手。
