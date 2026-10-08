@@ -62,11 +62,26 @@ pip install "tensorboardX>=1.9" dm_tree "gymnasium==1.2.2" lz4 "ormsgpack>=1.7.0
 - CartPole PPO 每個 iteration 約 16 秒，時間主要花在 Learner 更新，不在採樣（subagent 的觀察，[推論]）。
 - `num_env_runners` 從 2 改成 3 沒有變快；`train_batch_size=1000` 時每個 iteration 降到約 4 秒。
 
+### 7. `test_train_test_split` 單獨跑通過、一起跑失敗 [已查證現象，原因調查中]
+- 單獨跑 `python -m pytest -q "python/ray/data/tests/test_split.py::test_train_test_split"` → passed（2 次）。
+- `python -m pytest -q python/ray/data/tests/test_split.py -k train_test_split` → 失敗，`assert [0, 1, 4, 5, 6, 7] == [0, 1, 2, 3, 4, 5]`（3 次）。用 `--collect-only` 看，它還是第一個執行的，所以不是前面的測試留下了狀態。
+- 筆數對（6 筆），內容不對 → [推論] 是區塊順序或合併的問題，不是大小算錯。
+- [待查] 根本原因；跟 issue #66472（train_test_split 大小算錯）有沒有關係。
+
+### 8. 跑 Ray Data 的完整測試需要 polars [已查證]
+- `test_streaming_train_test_split_*` 用到 `Dataset.join`，錯誤訊息：`ImportError: Dataset.join depends on 'polars'... pip install polars`。目前 venv 沒有裝。
+
+### 9. 貢獻文件之間不一致 [已查證]（細節見 `04-contribution-flow.md`）
+- 合併前的 label：`CONTRIBUTING.rst:42`、`getting-involved.md:125` 寫 `test-ok`；`ci.md:36-40` 寫 `go`，而且外部貢獻者沒有權限加，要由 committer 加。[推論] 以 `ci.md` 為準。
+- 新測試放哪裡：`getting-involved.md:112` 寫 `python/ray/tests/`，但 Ray Data 的 pre-commit 規定要放 `python/ray/data/tests/`（`.pre-commit-config.yaml:225`）。
+- pre-commit 3.5.0 第一次跑 `pre-commit run --files <檔案>` 要約 2.5 分鐘建立 hook 環境，之後就快了。
+
 ## 待查問題清單
 - [ ] 觀察 2：Pillow 問題上游有沒有人回報（第 3 階段一起查）
+- [ ] 觀察 7：test_train_test_split 一起跑才失敗的根本原因（調查中）
 - [ ] 第 3 階段的三個 issue：#66472、#66077、#65759 的最新狀態
 
 ## 進度
 - 2026-10-08 第 0 階段：環境建好，`test_train_test_split` 通過
 - 2026-10-08 第 1 階段：地圖與 Core/Data/RLlib 範例完成，推到 `lex/notes`
-- 2026-10-08 第 2 階段：進行中
+- 2026-10-08 第 2 階段：貢獻流程筆記完成（`04-contribution-flow.md`）；觀察 7 調查中
