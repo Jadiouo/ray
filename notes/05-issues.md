@@ -14,7 +14,7 @@
 | Issue | 標題 | 狀態／標籤（WebFetch 摘要） | 有沒有人在做 |
 |---|---|---|---|
 | #66472 | train_test_split 浮點截斷導致大小算錯、stratify 可能產生空的測試集 | Open；bug, community-backlog, data, stability, triage | **[已查證] 已經有修正 PR #66499**：作者 ege-arhan，2026-09-25 送出，只改 `python/ray/data/dataset.py`（+63/−7），commit 訊息寫明兩個問題都修了。依社群習慣，**這題不要再做** |
-| #66077 | [Data] Raise a descriptive error when a partition value cannot be cast | Open；bug, community-backlog, data, triage, usability；沒有指派人，沒有關聯的 PR | 留言讀不到 |
+| #66077 | [Data] Raise a descriptive error when a partition value cannot be cast | Open；bug, community-backlog, data, triage, usability；沒有指派人，沒有關聯的 PR | **使用者確認：已經有人在做**（2026-10-08），不考慮 |
 | #65759 | [Data] Add HDF5 datasource support | Open；community-backlog, data, usability；沒有指派人，沒有關聯的 PR；本文提到可以參考 PR #63821（`read_lerobot`）的寫法 | 留言讀不到 |
 
 - [推論] 這三題的標籤都**沒有** `good-first-issue`，而是 `community-backlog`。goodfirstissue.org 收錄它們，可能是因為它用的篩選標準不同。
